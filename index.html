@@ -1,5 +1,4 @@
-# Cooment
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -678,6 +677,779 @@ const SUPABASE_ANON_KEY = 'sb_publishable__xF2JpJRzp-9yvteLDwZJQ_6xa2CzjS';
       authScreen.style.display = 'block';
       appScreen.style.display = 'none';
     }
+  });
+})();
+</script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger — Wealth Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#0A0F1C; --bg2:#0D1424;
+    --card:#121A2E; --card-hi:#161F38;
+    --border:#232E4A; --border-soft:#1B2439;
+    --text:#EAF0FA; --text-soft:#8CA0C4; --text-dim:#57668A;
+    --emerald:#34D399; --emerald-dim:rgba(52,211,153,0.14);
+    --gold:#F0B840; --gold-dim:rgba(240,184,64,0.14);
+    --red:#F2545B; --red-dim:rgba(242,84,91,0.14);
+    --violet:#8B7CF6; --violet-dim:rgba(139,124,246,0.14);
+    --sky:#4FB6E8; --sky-dim:rgba(79,182,232,0.14);
+  }
+  *{box-sizing:border-box;}
+  html,body{ margin:0; padding:0; min-height:100%; background:var(--bg); color:var(--text); font-family:'Space Grotesk', sans-serif; }
+  body{
+    display:flex; justify-content:center; padding:48px 20px 90px;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(52,211,153,0.10), transparent 60%),
+      radial-gradient(ellipse 900px 500px at 85% 0%, rgba(139,124,246,0.10), transparent 60%),
+      var(--bg);
+  }
+  .book{ width:100%; max-width:820px; }
+
+  .card{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 36px 30px;
+    box-shadow: 0 30px 60px -30px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+
+  header{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:26px; padding-bottom:22px; border-bottom: 1px solid var(--border-soft); }
+  .brand{ font-family:'Fraunces', serif; font-weight:600; font-size:23px; letter-spacing:0.01em; display:flex; align-items:center; gap:8px; }
+  .brand .dot{ width:8px; height:8px; border-radius:50%; background:linear-gradient(135deg, var(--emerald), var(--gold)); box-shadow:0 0 12px rgba(52,211,153,0.6); }
+  .brand .sub{ display:block; font-size:10.5px; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-dim); margin-top:3px; }
+  .header-right{ text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .balance-label{ font-size:10.5px; letter-spacing:0.14em; text-transform:uppercase; color:var(--text-dim); }
+  .balance{ font-family:'Fraunces', serif; font-weight:600; font-size:38px; line-height:1; background:linear-gradient(135deg, var(--emerald), #6EE7B7); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .balance.negative{ background:linear-gradient(135deg, var(--red), #FF8A90); -webkit-background-clip:text; background-clip:text; }
+  .user-row{ display:flex; align-items:center; gap:10px; font-size:11px; color:var(--text-dim); }
+  .logout-btn{ background:none; border:1px solid var(--border); color:var(--text-soft); font-size:11px; padding:5px 11px; border-radius:6px; cursor:pointer; font-family:'Space Grotesk',sans-serif; transition: all .15s; }
+  .logout-btn:hover{ border-color:var(--red); color:var(--red); }
+
+  .tabs{ display:flex; gap:4px; margin-bottom:26px; border-bottom:1px solid var(--border-soft); overflow-x:auto; }
+  .tab-btn{
+    font-weight:600; font-size:12px; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-dim);
+    background:none; border:none; padding:10px 14px; cursor:pointer; border-bottom:2px solid transparent;
+    transition: color .15s, border-color .15s; font-family:'Space Grotesk', sans-serif; white-space:nowrap;
+  }
+  .tab-btn:hover{ color:var(--text-soft); }
+  .tab-btn.active{ color:var(--emerald); border-bottom-color:var(--emerald); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; animation:fadein .25s ease; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:26px; }
+  .stat{ background:var(--card-hi); border:1px solid var(--border-soft); border-radius:12px; padding:15px 16px; position:relative; overflow:hidden; }
+  .stat::before{ content:''; position:absolute; top:0; left:0; width:3px; height:100%; }
+  .stat.cash::before{ background:var(--emerald); } .stat.invest::before{ background:var(--violet); }
+  .stat.lend::before{ background:var(--sky); } .stat.worth::before{ background:var(--gold); }
+  .stat .label{ font-size:10px; letter-spacing:0.09em; text-transform:uppercase; color:var(--text-dim); margin-bottom:7px; }
+  .stat .val{ font-family:'IBM Plex Mono', monospace; font-size:18px; font-weight:600; }
+  .stat.cash .val{ color:var(--emerald); } .stat.invest .val{ color:var(--violet); }
+  .stat.lend .val{ color:var(--sky); } .stat.worth .val{ color:var(--gold); }
+
+  .chart-row{ display:grid; grid-template-columns: 1.1fr 1fr; gap:16px; margin-bottom:8px; }
+  .chart-box{ background:var(--card-hi); border:1px solid var(--border-soft); border-radius:12px; padding:18px; }
+  .chart-box h3{ margin:0 0 14px; font-size:10.5px; letter-spacing:0.09em; text-transform:uppercase; color:var(--text-dim); font-weight:600; }
+  .chart-box canvas{ max-height:220px; }
+  .chart-empty{ text-align:center; color:var(--text-dim); font-size:12.5px; padding:40px 0; }
+
+  form.entry{ display:grid; grid-template-columns: 1fr 100px 120px auto; gap:10px; margin-bottom:8px; }
+  .inp, form.entry input, form.entry select, .budget-form input, .auth-form input{
+    font-size:14px; padding:11px 13px; border:1px solid var(--border); background: var(--bg2);
+    color:var(--text); border-radius:8px; width:100%; font-family:'Space Grotesk', sans-serif;
+  }
+  .inp::placeholder, form.entry input::placeholder{ color:var(--text-dim); }
+  form.entry input:focus, form.entry select:focus, .inp:focus{ outline:none; border-color:var(--emerald); box-shadow:0 0 0 3px var(--emerald-dim); }
+  .type-toggle{ display:flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .type-toggle button{
+    flex:1; border:none; background:var(--bg2); color:var(--text-dim); font-size:12.5px; font-weight:600;
+    padding:10px 0; cursor:pointer; transition: background .15s, color .15s; font-family:'Space Grotesk', sans-serif;
+  }
+  .type-toggle button.active[data-type="expense"]{ background: var(--red); color:#1A0A0B; }
+  .type-toggle button.active[data-type="income"]{ background: var(--emerald); color:#06251A; }
+  .add-btn{
+    font-weight:700; font-size:13px; letter-spacing:0.02em; border:none; background:linear-gradient(135deg, var(--emerald), #1FA97A); color:#052E1F;
+    padding:0 20px; border-radius:8px; cursor:pointer; transition: filter .15s, transform .1s; font-family:'Space Grotesk', sans-serif;
+  }
+  .add-btn:disabled{ opacity:0.5; cursor:default; }
+  .add-btn:hover:not(:disabled){ filter:brightness(1.1); }
+  .add-btn:active:not(:disabled){ transform:scale(0.97); }
+  .row2{ display:grid; grid-template-columns: 1fr 140px; gap:10px; margin-bottom:22px; }
+
+  .filters{ display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+  .filters select, .filters input[type="text"]{
+    font-size:12.5px; padding:9px 11px; border:1px solid var(--border); background:var(--bg2);
+    color:var(--text); border-radius:8px; font-family:'Space Grotesk',sans-serif;
+  }
+  .filters .search{ flex:1; min-width:120px; }
+  .export-btn{
+    font-weight:600; font-size:12px; letter-spacing:0.02em; border:1px solid var(--gold); background:none; color:var(--gold);
+    padding:9px 15px; border-radius:8px; cursor:pointer; white-space:nowrap; transition: all .15s; font-family:'Space Grotesk',sans-serif;
+  }
+  .export-btn:hover{ background:var(--gold-dim); }
+
+  .receipt-title{ display:flex; justify-content:space-between; align-items:baseline; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-dim); margin-bottom:10px; }
+
+  ul.entries{ list-style:none; margin:0 0 6px; padding:0; max-height:380px; overflow-y:auto; }
+  ul.entries li{ display:flex; align-items:baseline; gap:8px; padding:10px 4px; border-bottom:1px solid var(--border-soft); font-size:13.5px; }
+  ul.entries li .date{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-dim); white-space:nowrap; }
+  ul.entries li .desc{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+  ul.entries li .cat{ color:var(--text-dim); font-size:11px; white-space:nowrap; background:var(--bg2); padding:2px 7px; border-radius:5px; }
+  ul.entries li .leader{ flex:1; }
+  ul.entries li .amt{ font-family:'IBM Plex Mono', monospace; font-weight:600; white-space:nowrap; }
+  ul.entries li .amt.expense{ color:var(--red); }
+  ul.entries li .amt.income{ color:var(--emerald); }
+  ul.entries li .del{ background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:15px; padding:0 0 0 6px; line-height:1; opacity:0.5; transition:opacity .15s; }
+  ul.entries li .del:hover{ opacity:1; color:var(--red); }
+  .empty{ text-align:center; padding:40px 0; color:var(--text-dim); font-size:13.5px; }
+
+  .budget-form{ display:grid; grid-template-columns: 1fr 130px auto; gap:10px; margin-bottom:24px; }
+  .budget-card{ background:var(--card-hi); border:1px solid var(--border-soft); border-radius:12px; padding:15px 17px; margin-bottom:12px; }
+  .budget-top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px; }
+  .budget-cat{ font-family:'Fraunces',serif; font-weight:600; font-size:15px; }
+  .budget-nums{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--text-dim); }
+  .budget-nums.over{ color:var(--red); font-weight:600; }
+  .budget-track{ height:7px; background:var(--bg2); border-radius:4px; overflow:hidden; margin-bottom:7px; }
+  .budget-fill{ height:100%; border-radius:4px; background:var(--emerald); transition: width .2s; }
+  .budget-fill.warn{ background:var(--gold); }
+  .budget-fill.over{ background:var(--red); }
+  .budget-del{ background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:11.5px; text-decoration:underline; padding:0; opacity:0.7; }
+  .budget-del:hover{ opacity:1; color:var(--red); }
+
+  /* Investments & Lending cards */
+  .item-form{ display:grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap:10px; margin-bottom:10px; }
+  .item-form2{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:16px; }
+  .item-card{
+    background:var(--card-hi); border:1px solid var(--border-soft); border-left:3px solid var(--violet);
+    border-radius:10px; padding:14px 17px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:12px;
+  }
+  .item-card.lend{ border-left-color:var(--sky); }
+  .item-card.paid{ opacity:0.55; }
+  .item-name{ font-weight:600; font-size:14.5px; margin-bottom:4px; }
+  .item-meta{ font-size:11.5px; color:var(--text-dim); display:flex; gap:10px; flex-wrap:wrap; }
+  .badge{ font-size:10px; text-transform:uppercase; letter-spacing:0.06em; padding:2px 8px; border-radius:5px; font-weight:600; }
+  .badge.stock{ background:var(--violet-dim); color:var(--violet); }
+  .badge.business{ background:var(--gold-dim); color:var(--gold); }
+  .badge.other{ background:var(--sky-dim); color:var(--sky); }
+  .badge.pending{ background:var(--gold-dim); color:var(--gold); }
+  .badge.paid-badge{ background:var(--emerald-dim); color:var(--emerald); }
+  .item-amt{ text-align:right; }
+  .item-amt .amt{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:16px; color:var(--violet); }
+  .item-card.lend .item-amt .amt{ color:var(--sky); }
+  .item-actions{ display:flex; gap:8px; align-items:center; margin-top:6px; justify-content:flex-end; }
+  .mini-btn{ font-size:11px; font-weight:600; border:1px solid var(--border); background:none; color:var(--text-soft); padding:4px 10px; border-radius:6px; cursor:pointer; font-family:'Space Grotesk',sans-serif; }
+  .mini-btn:hover{ border-color:var(--emerald); color:var(--emerald); }
+  .mini-btn.del:hover{ border-color:var(--red); color:var(--red); }
+
+  .status{ text-align:center; font-size:11px; color:var(--text-dim); margin-top:16px; min-height:14px; }
+
+  .auth-card{ text-align:left; }
+  .auth-title{ font-family:'Fraunces', serif; font-weight:600; font-size:25px; margin-bottom:6px; }
+  .auth-sub{ font-size:13px; color:var(--text-soft); margin-bottom:26px; }
+  .auth-form{ display:flex; flex-direction:column; gap:12px; margin-bottom:16px; }
+  .auth-form label{ font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px; display:block; }
+  .auth-submit{
+    font-weight:700; font-size:13.5px; letter-spacing:0.02em; border:none; background:linear-gradient(135deg, var(--emerald), #1FA97A); color:#052E1F;
+    padding:13px 0; border-radius:8px; cursor:pointer; margin-top:6px; font-family:'Space Grotesk', sans-serif;
+  }
+  .auth-submit:disabled{ opacity:0.5; cursor:default; }
+  .auth-submit:hover:not(:disabled){ filter:brightness(1.1); }
+  .auth-switch{ font-size:12.5px; color:var(--text-dim); text-align:center; }
+  .auth-switch button{ background:none; border:none; color:var(--gold); cursor:pointer; font-weight:600; font-family:'Space Grotesk', sans-serif; font-size:12.5px; text-decoration:underline; padding:0; }
+  .auth-msg{ font-size:12.5px; padding:11px 13px; border-radius:8px; margin-bottom:14px; display:none; }
+  .auth-msg.show{ display:block; }
+  .auth-msg.error{ background:var(--red-dim); color:var(--red); }
+  .auth-msg.info{ background:var(--emerald-dim); color:var(--emerald); }
+  .setup-notice{ background:var(--red-dim); border:1px solid var(--red); color:#FF9DA2; font-size:12.5px; padding:14px 16px; border-radius:10px; margin-bottom:20px; line-height:1.6; }
+  .setup-notice code{ background:rgba(255,255,255,0.08); padding:1px 5px; border-radius:3px; }
+
+  #appScreen{ display:none; }
+
+  @media (max-width:640px){
+    .stats{ grid-template-columns:1fr 1fr; }
+    .chart-row{ grid-template-columns:1fr; }
+    form.entry{ grid-template-columns: 1fr 1fr; }
+    .add-btn{ grid-column: 1 / -1; padding:11px 0; }
+    .row2{ grid-template-columns:1fr; }
+    .balance{ font-size:30px; }
+    header{ flex-direction:column; align-items:flex-start; gap:14px; }
+    .header-right{ align-items:flex-start; text-align:left; }
+    .budget-form{ grid-template-columns:1fr; }
+    .item-form{ grid-template-columns:1fr 1fr; }
+    .item-form2{ grid-template-columns:1fr; }
+    .item-card{ flex-direction:column; align-items:flex-start; }
+    .item-amt{ text-align:left; width:100%; }
+    .item-actions{ justify-content:flex-start; }
+  }
+  :focus-visible{ outline:2px solid var(--emerald); outline-offset:2px; }
+  ::-webkit-scrollbar{ width:8px; height:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--border); border-radius:4px; }
+</style>
+</head>
+<body>
+
+<div class="book">
+  <div class="card">
+
+    <div id="authScreen">
+      <div id="setupNotice" class="setup-notice" style="display:none;">
+        <strong>Setup needed:</strong> this app isn't connected to a database yet. Open <code>index.html</code>,
+        find <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> near the top of the script, and
+        replace them with the values from your Supabase project's API settings.
+      </div>
+      <div class="auth-card">
+        <div class="brand" style="margin-bottom:24px;"><span class="dot"></span>Ledger<span class="sub" style="margin-left:6px;">wealth tracker</span></div>
+        <div class="auth-title" id="authTitle">Welcome back</div>
+        <div class="auth-sub" id="authSub">Sign in to your ledger.</div>
+        <div class="auth-msg" id="authMsg"></div>
+        <form class="auth-form" id="authForm">
+          <div><label for="authEmail">Email</label><input type="email" id="authEmail" required autocomplete="email" /></div>
+          <div><label for="authPassword">Password</label><input type="password" id="authPassword" required autocomplete="current-password" minlength="6" /></div>
+          <button type="submit" class="auth-submit" id="authSubmit">Sign In</button>
+        </form>
+        <div class="auth-switch" id="authSwitch">New here? <button type="button" id="authToggleBtn">Create an account</button></div>
+      </div>
+    </div>
+
+    <div id="appScreen">
+      <header>
+        <div class="brand"><span class="dot"></span>Ledger<span class="sub" style="margin-left:6px;">wealth tracker</span></div>
+        <div class="header-right">
+          <div class="balance-label">Cash Balance</div>
+          <div class="balance" id="balanceEl">$0.00</div>
+          <div class="user-row"><span id="userEmailEl"></span><button class="logout-btn" id="logoutBtn">Sign out</button></div>
+        </div>
+      </header>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="overview">Overview</button>
+        <button class="tab-btn" data-tab="transactions">Transactions</button>
+        <button class="tab-btn" data-tab="budgets">Budgets</button>
+        <button class="tab-btn" data-tab="investments">Investments</button>
+        <button class="tab-btn" data-tab="lending">Lending</button>
+      </div>
+
+      <div class="tab-panel active" id="panel-overview">
+        <div class="stats">
+          <div class="stat cash"><div class="label">Cash Balance</div><div class="val" id="statCash">$0.00</div></div>
+          <div class="stat invest"><div class="label">Total Invested</div><div class="val" id="statInvested">$0.00</div></div>
+          <div class="stat lend"><div class="label">Pending From Others</div><div class="val" id="statLent">$0.00</div></div>
+          <div class="stat worth"><div class="label">Net Worth</div><div class="val" id="statWorth">$0.00</div></div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-box"><h3>Spending by Category</h3><div id="donutWrap"><canvas id="donutChart"></canvas></div></div>
+          <div class="chart-box"><h3>Last 6 Months</h3><div id="barWrap"><canvas id="barChart"></canvas></div></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="panel-transactions">
+        <form class="entry" id="entryForm">
+          <input type="text" id="descInput" placeholder="Description" required maxlength="60" />
+          <input type="number" id="amtInput" placeholder="0.00" step="0.01" min="0" required />
+          <div class="type-toggle" id="typeToggle">
+            <button type="button" data-type="expense" class="active">Expense</button>
+            <button type="button" data-type="income">Income</button>
+          </div>
+          <button type="submit" class="add-btn" id="addBtn">Add</button>
+        </form>
+        <div class="row2">
+          <input class="inp" type="text" id="catInput" placeholder="Category (optional — e.g. Food, Rent, Salary)" maxlength="24" />
+          <input class="inp" type="date" id="dateInput" />
+        </div>
+        <div class="filters">
+          <select id="monthFilter"><option value="all">All months</option></select>
+          <select id="catFilter"><option value="all">All categories</option></select>
+          <input type="text" class="search" id="searchInput" placeholder="Search description…" />
+          <button class="export-btn" id="exportBtn">Export CSV</button>
+        </div>
+        <div class="receipt-title"><span>Transactions</span><span id="countEl">0 entries</span></div>
+        <ul class="entries" id="entriesList"></ul>
+      </div>
+
+      <div class="tab-panel" id="panel-budgets">
+        <form class="budget-form" id="budgetForm">
+          <input class="inp" type="text" id="budgetCatInput" placeholder="Category (e.g. Food)" required maxlength="24" />
+          <input class="inp" type="number" id="budgetLimitInput" placeholder="Monthly limit" step="0.01" min="0.01" required />
+          <button type="submit" class="add-btn">Set</button>
+        </form>
+        <div class="receipt-title"><span>This Month's Budgets</span></div>
+        <div id="budgetsList"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-investments">
+        <div class="stats" style="grid-template-columns:1fr 1fr;">
+          <div class="stat invest"><div class="label">Total Invested</div><div class="val" id="investTotal">$0.00</div></div>
+          <div class="stat invest"><div class="label">Positions</div><div class="val" id="investCount">0</div></div>
+        </div>
+        <form class="item-form" id="investForm">
+          <input class="inp" type="text" id="investNameInput" placeholder="Name (e.g. Reliance shares, Raj's cafe)" required maxlength="60" />
+          <select class="inp" id="investCatInput">
+            <option value="stock">Stock</option>
+            <option value="business">Business</option>
+            <option value="other">Other</option>
+          </select>
+          <input class="inp" type="number" id="investAmtInput" placeholder="Amount" step="0.01" min="0.01" required />
+          <button type="submit" class="add-btn">Add</button>
+        </form>
+        <div class="item-form2">
+          <input class="inp" type="date" id="investDateInput" />
+          <input class="inp" type="text" id="investNotesInput" placeholder="Notes (optional)" maxlength="120" />
+        </div>
+        <div class="receipt-title"><span>Your Investments</span></div>
+        <div id="investList"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-lending">
+        <div class="stats" style="grid-template-columns:1fr 1fr;">
+          <div class="stat lend"><div class="label">Pending (incl. interest)</div><div class="val" id="lendPending">$0.00</div></div>
+          <div class="stat lend"><div class="label">Paid Back</div><div class="val" id="lendPaid">$0.00</div></div>
+        </div>
+        <form class="item-form" id="loanForm">
+          <input class="inp" type="text" id="loanBorrowerInput" placeholder="Who did you lend to?" required maxlength="60" />
+          <input class="inp" type="number" id="loanAmtInput" placeholder="Amount" step="0.01" min="0.01" required />
+          <input class="inp" type="number" id="loanRateInput" placeholder="Interest %/yr" step="0.1" min="0" value="0" />
+          <button type="submit" class="add-btn">Add</button>
+        </form>
+        <div class="item-form2">
+          <input class="inp" type="date" id="loanDateInput" title="Date given" />
+          <input class="inp" type="date" id="loanDueInput" title="Due date" />
+        </div>
+        <div class="receipt-title"><span>Money Lent Out</span></div>
+        <div id="loanList"></div>
+      </div>
+
+      <div class="status" id="statusEl"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://lxqufhlodfshxazlrmhr.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable__xF2JpJRzp-9yvteLDwZJQ_6xa2CzjS';
+
+(function(){
+  const isConfigured = SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY';
+  if(!isConfigured){
+    document.getElementById('setupNotice').style.display = 'block';
+    document.getElementById('authForm').style.display = 'none';
+    document.getElementById('authSwitch').style.display = 'none';
+    return;
+  }
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let entries = [], budgets = {}, investments = [], loans = [];
+  let currentType = 'expense', currentTab = 'overview', authMode = 'signin', currentUser = null;
+  let donutChart = null, barChart = null;
+  const CHART_COLORS = ['#F0B840','#34D399','#F2545B','#4FB6E8','#8B7CF6','#5C6B7A','#EC9A3C'];
+
+  const authScreen = document.getElementById('authScreen'), appScreen = document.getElementById('appScreen');
+  const authForm = document.getElementById('authForm'), authEmail = document.getElementById('authEmail'), authPassword = document.getElementById('authPassword');
+  const authSubmit = document.getElementById('authSubmit'), authTitle = document.getElementById('authTitle'), authSub = document.getElementById('authSub');
+  const authMsg = document.getElementById('authMsg'), authSwitch = document.getElementById('authSwitch');
+  const userEmailEl = document.getElementById('userEmailEl'), logoutBtn = document.getElementById('logoutBtn');
+
+  const form = document.getElementById('entryForm'), descInput = document.getElementById('descInput'), amtInput = document.getElementById('amtInput');
+  const catInput = document.getElementById('catInput'), dateInput = document.getElementById('dateInput'), typeToggle = document.getElementById('typeToggle');
+  const addBtn = document.getElementById('addBtn'), entriesList = document.getElementById('entriesList');
+  const balanceEl = document.getElementById('balanceEl'), countEl = document.getElementById('countEl'), statusEl = document.getElementById('statusEl');
+  const statCash = document.getElementById('statCash'), statInvested = document.getElementById('statInvested'), statLent = document.getElementById('statLent'), statWorth = document.getElementById('statWorth');
+  const monthFilter = document.getElementById('monthFilter'), catFilter = document.getElementById('catFilter'), searchInput = document.getElementById('searchInput'), exportBtn = document.getElementById('exportBtn');
+  const budgetForm = document.getElementById('budgetForm'), budgetCatInput = document.getElementById('budgetCatInput'), budgetLimitInput = document.getElementById('budgetLimitInput'), budgetsList = document.getElementById('budgetsList');
+
+  const investForm = document.getElementById('investForm'), investNameInput = document.getElementById('investNameInput'), investCatInput = document.getElementById('investCatInput');
+  const investAmtInput = document.getElementById('investAmtInput'), investDateInput = document.getElementById('investDateInput'), investNotesInput = document.getElementById('investNotesInput');
+  const investList = document.getElementById('investList'), investTotal = document.getElementById('investTotal'), investCount = document.getElementById('investCount');
+
+  const loanForm = document.getElementById('loanForm'), loanBorrowerInput = document.getElementById('loanBorrowerInput'), loanAmtInput = document.getElementById('loanAmtInput');
+  const loanRateInput = document.getElementById('loanRateInput'), loanDateInput = document.getElementById('loanDateInput'), loanDueInput = document.getElementById('loanDueInput');
+  const loanList = document.getElementById('loanList'), lendPending = document.getElementById('lendPending'), lendPaid = document.getElementById('lendPaid');
+
+  const today = new Date().toISOString().slice(0,10);
+  dateInput.value = today; investDateInput.value = today; loanDateInput.value = today;
+
+  function fmt(n){ const sign = n < 0 ? '-' : ''; return sign + '$' + Math.abs(n).toFixed(2); }
+  function escapeHtml(str){ const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+  function monthKey(dateStr){ return (dateStr || '').slice(0,7); }
+  function monthLabel(key){ const [y,m] = key.split('-'); const d = new Date(parseInt(y), parseInt(m)-1, 1); return d.toLocaleDateString('en-US', {month:'short', year:'numeric'}); }
+  function setStatus(msg, isError){ statusEl.textContent = msg; statusEl.style.color = isError ? 'var(--red)' : 'var(--text-dim)'; }
+  function showAuthMsg(msg, type){ authMsg.textContent = msg; authMsg.className = 'auth-msg show ' + type; }
+  function clearAuthMsg(){ authMsg.className = 'auth-msg'; }
+
+  function renderAuthMode(){
+    clearAuthMsg();
+    if(authMode === 'signup'){
+      authTitle.textContent = 'Create your ledger'; authSub.textContent = 'Sign up to start tracking.'; authSubmit.textContent = 'Sign Up';
+      authSwitch.innerHTML = 'Already have an account? <button type="button" id="authToggleBtn">Sign in</button>';
+    } else {
+      authTitle.textContent = 'Welcome back'; authSub.textContent = 'Sign in to your ledger.'; authSubmit.textContent = 'Sign In';
+      authSwitch.innerHTML = 'New here? <button type="button" id="authToggleBtn">Create an account</button>';
+    }
+    document.getElementById('authToggleBtn').addEventListener('click', () => { authMode = authMode === 'signin' ? 'signup' : 'signin'; renderAuthMode(); });
+  }
+  renderAuthMode();
+
+  authForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); clearAuthMsg(); authSubmit.disabled = true;
+    const email = authEmail.value.trim(), password = authPassword.value;
+    try{
+      if(authMode === 'signup'){
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if(error) throw error;
+        if(data.user && !data.session){ showAuthMsg('Account created — check your email to confirm, then sign in.', 'info'); authSubmit.disabled = false; return; }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if(error) throw error;
+      }
+    }catch(err){ showAuthMsg(err.message || 'Something went wrong.', 'error'); authSubmit.disabled = false; }
+  });
+
+  logoutBtn.addEventListener('click', async () => { await supabase.auth.signOut(); });
+
+  supabase.auth.onAuthStateChange((event, session) => {
+    if(session && session.user){
+      currentUser = session.user; authScreen.style.display = 'none'; appScreen.style.display = 'block';
+      userEmailEl.textContent = session.user.email; loadAll();
+    } else {
+      currentUser = null; appScreen.style.display = 'none'; authScreen.style.display = 'block'; authSubmit.disabled = false;
+    }
+  });
+
+  async function loadAll(){
+    setStatus('Loading your ledger…');
+    try{
+      const [exp, bud, inv, ln] = await Promise.all([
+        supabase.from('expenses').select('*').order('date', { ascending:false }),
+        supabase.from('budgets').select('*'),
+        supabase.from('investments').select('*').order('date', { ascending:false }),
+        supabase.from('loans').select('*').order('due_date', { ascending:true })
+      ]);
+      if(exp.error) throw exp.error; if(bud.error) throw bud.error; if(inv.error) throw inv.error; if(ln.error) throw ln.error;
+      entries = (exp.data || []).map(r => ({ id:r.id, desc:r.description, amount:Number(r.amount), cat:r.category || '', type:r.type, date:r.date }));
+      budgets = {}; (bud.data || []).forEach(r => { budgets[r.category] = Number(r.monthly_limit); });
+      investments = (inv.data || []).map(r => ({ id:r.id, name:r.name, category:r.category, amount:Number(r.amount), date:r.date, notes:r.notes || '' }));
+      loans = (ln.data || []).map(r => ({ id:r.id, borrower:r.borrower, amount:Number(r.amount), rate:Number(r.interest_rate), dateGiven:r.date_given, dueDate:r.due_date, status:r.status }));
+      populateFilters(); renderAll(); setStatus('Synced.');
+    }catch(err){ setStatus('Could not load data: ' + (err.message || 'unknown error'), true); }
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentTab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + currentTab));
+      if(currentTab === 'overview') renderCharts();
+      if(currentTab === 'budgets') renderBudgets();
+      if(currentTab === 'investments') renderInvestments();
+      if(currentTab === 'lending') renderLoans();
+    });
+  });
+
+  function populateFilters(){
+    const months = Array.from(new Set(entries.map(e => monthKey(e.date)))).sort().reverse();
+    const curMonth = monthFilter.value;
+    monthFilter.innerHTML = '<option value="all">All months</option>' + months.map(m => `<option value="${m}">${monthLabel(m)}</option>`).join('');
+    if(months.includes(curMonth)) monthFilter.value = curMonth;
+    const cats = Array.from(new Set(entries.map(e => e.cat).filter(Boolean))).sort();
+    const curCat = catFilter.value;
+    catFilter.innerHTML = '<option value="all">All categories</option>' + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    if(cats.includes(curCat)) catFilter.value = curCat;
+  }
+
+  function getFilteredEntries(){
+    return entries.filter(e => {
+      if(monthFilter.value !== 'all' && monthKey(e.date) !== monthFilter.value) return false;
+      if(catFilter.value !== 'all' && (e.cat || '') !== catFilter.value) return false;
+      if(searchInput.value.trim() && !e.desc.toLowerCase().includes(searchInput.value.trim().toLowerCase())) return false;
+      return true;
+    });
+  }
+  [monthFilter, catFilter].forEach(el => el.addEventListener('change', renderTransactions));
+  searchInput.addEventListener('input', renderTransactions);
+
+  function renderHeaderStats(){
+    const cash = entries.reduce((sum, e) => sum + (e.type === 'income' ? e.amount : -e.amount), 0);
+    balanceEl.textContent = fmt(cash);
+    balanceEl.className = 'balance ' + (cash < 0 ? 'negative' : '');
+    const invested = investments.reduce((s,i) => s + i.amount, 0);
+    const pendingLoans = loans.filter(l => l.status === 'pending').reduce((s,l) => s + loanAmountDue(l), 0);
+    statCash.textContent = fmt(cash); statInvested.textContent = fmt(invested); statLent.textContent = fmt(pendingLoans);
+    statWorth.textContent = fmt(cash + invested + pendingLoans);
+  }
+
+  function renderTransactions(){
+    const filtered = getFilteredEntries();
+    countEl.textContent = filtered.length + (filtered.length === 1 ? ' entry' : ' entries');
+    entriesList.innerHTML = '';
+    if(filtered.length === 0){
+      const empty = document.createElement('li'); empty.style.border = 'none';
+      empty.innerHTML = '<div class="empty" style="width:100%;">No transactions match your filters.</div>';
+      entriesList.appendChild(empty); return;
+    }
+    filtered.slice().sort((a,b) => (b.date||'').localeCompare(a.date||'')).forEach(e => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="date">${e.date || ''}</span><span class="desc">${escapeHtml(e.desc)}</span>
+        ${e.cat ? `<span class="cat">${escapeHtml(e.cat)}</span>` : ''}<span class="leader"></span>
+        <span class="amt ${e.type}">${e.type === 'expense' ? '-' : '+'}${fmt(e.amount)}</span>
+        <button class="del" title="Delete" data-id="${e.id}">✕</button>`;
+      entriesList.appendChild(li);
+    });
+  }
+
+  entriesList.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.del'); if(!btn) return;
+    const id = btn.dataset.id; setStatus('Deleting…');
+    try{
+      const { error } = await supabase.from('expenses').delete().eq('id', id); if(error) throw error;
+      entries = entries.filter(en => en.id !== id); populateFilters(); renderAll(); setStatus('Synced.');
+    }catch(err){ setStatus('Could not delete: ' + (err.message||''), true); }
+  });
+
+  function renderCharts(){
+    const monthSel = monthFilter.value;
+    const relevant = entries.filter(e => e.type === 'expense' && (monthSel === 'all' || monthKey(e.date) === monthSel));
+    const catTotals = {}; relevant.forEach(e => { const k = e.cat || 'Uncategorized'; catTotals[k] = (catTotals[k]||0) + e.amount; });
+    const catEntries = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);
+    const donutWrap = document.getElementById('donutWrap');
+    if(catEntries.length === 0){
+      if(donutChart){ donutChart.destroy(); donutChart = null; }
+      donutWrap.innerHTML = '<div class="chart-empty">No expenses yet to break down.</div>';
+    } else {
+      if(!document.getElementById('donutChart')) donutWrap.innerHTML = '<canvas id="donutChart"></canvas>';
+      const ctx = document.getElementById('donutChart').getContext('2d');
+      const data = { labels: catEntries.map(c=>c[0]), datasets: [{ data: catEntries.map(c=>c[1]), backgroundColor: catEntries.map((_,i)=>CHART_COLORS[i % CHART_COLORS.length]), borderColor:'#121A2E', borderWidth:3 }] };
+      if(donutChart){ donutChart.data = data; donutChart.update(); }
+      else donutChart = new Chart(ctx, { type:'doughnut', data, options:{ responsive:true, maintainAspectRatio:true, cutout:'64%', plugins:{ legend:{ position:'bottom', labels:{ font:{family:"'Space Grotesk', sans-serif", size:11}, color:'#8CA0C4', boxWidth:10, padding:10 } } } } });
+    }
+    const now = new Date(); const monthKeys = [];
+    for(let i=5;i>=0;i--){ const d = new Date(now.getFullYear(), now.getMonth()-i, 1); monthKeys.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')); }
+    const incomeByMonth = monthKeys.map(mk => entries.filter(e=>e.type==='income' && monthKey(e.date)===mk).reduce((s,e)=>s+e.amount,0));
+    const expenseByMonth = monthKeys.map(mk => entries.filter(e=>e.type==='expense' && monthKey(e.date)===mk).reduce((s,e)=>s+e.amount,0));
+    const hasBarData = incomeByMonth.some(v=>v>0) || expenseByMonth.some(v=>v>0);
+    const barWrap = document.getElementById('barWrap');
+    if(!hasBarData){
+      if(barChart){ barChart.destroy(); barChart = null; }
+      barWrap.innerHTML = '<div class="chart-empty">Not enough history yet.</div>';
+    } else {
+      if(!document.getElementById('barChart')) barWrap.innerHTML = '<canvas id="barChart"></canvas>';
+      const ctx2 = document.getElementById('barChart').getContext('2d');
+      const data2 = { labels: monthKeys.map(monthLabel), datasets:[ { label:'Income', data:incomeByMonth, backgroundColor:'#34D399', borderRadius:4 }, { label:'Expenses', data:expenseByMonth, backgroundColor:'#F2545B', borderRadius:4 } ] };
+      if(barChart){ barChart.data = data2; barChart.update(); }
+      else barChart = new Chart(ctx2, { type:'bar', data:data2, options:{ responsive:true, maintainAspectRatio:true,
+        scales:{ x:{ ticks:{ font:{family:"'Space Grotesk', sans-serif", size:10.5}, color:'#8CA0C4' }, grid:{ display:false } }, y:{ ticks:{ font:{family:"'IBM Plex Mono', monospace", size:10}, color:'#8CA0C4' }, grid:{ color:'#1B2439' } } },
+        plugins:{ legend:{ position:'bottom', labels:{ font:{family:"'Space Grotesk', sans-serif", size:11}, color:'#8CA0C4', boxWidth:10, padding:10 } } } } });
+    }
+  }
+
+  function renderBudgets(){
+    const thisMonth = new Date().toISOString().slice(0,7);
+    const spentByCat = {};
+    entries.filter(e => e.type==='expense' && monthKey(e.date) === thisMonth).forEach(e => { const k = e.cat || 'Uncategorized'; spentByCat[k] = (spentByCat[k]||0) + e.amount; });
+    const cats = Object.keys(budgets); budgetsList.innerHTML = '';
+    if(cats.length === 0){ budgetsList.innerHTML = '<div class="empty">No budgets set yet. Add a category and monthly limit above.</div>'; return; }
+    cats.sort().forEach(cat => {
+      const limit = budgets[cat], spent = spentByCat[cat] || 0, pct = limit > 0 ? Math.min(100, (spent/limit)*100) : 0;
+      const isOver = spent > limit, isWarn = !isOver && pct >= 80;
+      const div = document.createElement('div'); div.className = 'budget-card';
+      div.innerHTML = `<div class="budget-top"><span class="budget-cat">${escapeHtml(cat)}</span><span class="budget-nums ${isOver ? 'over' : ''}">${fmt(spent)} / ${fmt(limit)}</span></div>
+        <div class="budget-track"><div class="budget-fill ${isOver ? 'over' : (isWarn ? 'warn' : '')}" style="width:${pct}%"></div></div>
+        <button class="budget-del" data-cat="${escapeHtml(cat)}">Remove budget</button>`;
+      budgetsList.appendChild(div);
+    });
+  }
+
+  budgetsList.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.budget-del'); if(!btn) return;
+    const cat = btn.dataset.cat; setStatus('Removing…');
+    try{ const { error } = await supabase.from('budgets').delete().eq('category', cat); if(error) throw error;
+      delete budgets[cat]; renderBudgets(); setStatus('Synced.');
+    }catch(err){ setStatus('Could not remove: ' + (err.message||''), true); }
+  });
+
+  budgetForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const cat = budgetCatInput.value.trim(), limit = parseFloat(budgetLimitInput.value);
+    if(!cat || isNaN(limit) || limit <= 0) return;
+    setStatus('Saving…');
+    try{
+      const { error } = await supabase.from('budgets').upsert({ user_id: currentUser.id, category: cat, monthly_limit: limit }, { onConflict: 'user_id,category' });
+      if(error) throw error;
+      budgets[cat] = limit; renderBudgets(); setStatus('Synced.'); budgetCatInput.value = ''; budgetLimitInput.value = '';
+    }catch(err){ setStatus('Could not save: ' + (err.message||''), true); }
+  });
+
+  typeToggle.addEventListener('click', (e) => {
+    const btn = e.target.closest('button'); if(!btn) return;
+    currentType = btn.dataset.type; [...typeToggle.children].forEach(b => b.classList.toggle('active', b === btn));
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const desc = descInput.value.trim(), amount = parseFloat(amtInput.value), cat = catInput.value.trim();
+    const date = dateInput.value || today;
+    if(!desc || isNaN(amount) || amount <= 0) return;
+    addBtn.disabled = true; setStatus('Saving…');
+    try{
+      const { data, error } = await supabase.from('expenses').insert({ user_id: currentUser.id, description: desc, amount, category: cat || null, type: currentType, date }).select().single();
+      if(error) throw error;
+      entries.push({ id:data.id, desc:data.description, amount:Number(data.amount), cat:data.category || '', type:data.type, date:data.date });
+      populateFilters(); renderAll(); setStatus('Synced.');
+      descInput.value = ''; amtInput.value = ''; catInput.value = ''; dateInput.value = today; descInput.focus();
+    }catch(err){ setStatus('Could not save: ' + (err.message||''), true); }
+    addBtn.disabled = false;
+  });
+
+  exportBtn.addEventListener('click', () => {
+    const filtered = getFilteredEntries();
+    if(filtered.length === 0){ setStatus('Nothing to export with current filters.', true); return; }
+    const header = ['Date','Description','Category','Type','Amount'];
+    const rows = filtered.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(e => [ e.date || '', `"${(e.desc||'').replace(/"/g,'""')}"`, e.cat || '', e.type, e.amount.toFixed(2) ]);
+    const csv = [header.join(','), ...rows.map(r=>r.join(','))].join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob); const a = document.createElement('a');
+    a.href = url; a.download = 'ledger-export.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    setStatus('CSV exported.');
+  });
+
+  // ---- Investments ----
+  function renderInvestments(){
+    const total = investments.reduce((s,i) => s + i.amount, 0);
+    investTotal.textContent = fmt(total); investCount.textContent = investments.length;
+    investList.innerHTML = '';
+    if(investments.length === 0){ investList.innerHTML = '<div class="empty">No investments logged yet.</div>'; return; }
+    investments.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).forEach(i => {
+      const div = document.createElement('div'); div.className = 'item-card';
+      div.innerHTML = `<div>
+          <div class="item-name">${escapeHtml(i.name)}</div>
+          <div class="item-meta"><span class="badge ${i.category}">${i.category}</span><span>${i.date}</span>${i.notes ? `<span>${escapeHtml(i.notes)}</span>` : ''}</div>
+        </div>
+        <div class="item-amt"><div class="amt">${fmt(i.amount)}</div>
+          <div class="item-actions"><button class="mini-btn del" data-id="${i.id}">Remove</button></div>
+        </div>`;
+      investList.appendChild(div);
+    });
+  }
+
+  investForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = investNameInput.value.trim(), category = investCatInput.value, amount = parseFloat(investAmtInput.value);
+    const date = investDateInput.value || today, notes = investNotesInput.value.trim();
+    if(!name || isNaN(amount) || amount <= 0) return;
+    setStatus('Saving…');
+    try{
+      const { data, error } = await supabase.from('investments').insert({ user_id: currentUser.id, name, category, amount, date, notes: notes || null }).select().single();
+      if(error) throw error;
+      investments.push({ id:data.id, name:data.name, category:data.category, amount:Number(data.amount), date:data.date, notes:data.notes || '' });
+      renderInvestments(); renderHeaderStats(); setStatus('Synced.');
+      investNameInput.value=''; investAmtInput.value=''; investNotesInput.value=''; investDateInput.value = today;
+    }catch(err){ setStatus('Could not save: ' + (err.message||''), true); }
+  });
+
+  investList.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.del'); if(!btn) return;
+    const id = btn.dataset.id; setStatus('Removing…');
+    try{
+      const { error } = await supabase.from('investments').delete().eq('id', id); if(error) throw error;
+      investments = investments.filter(i => i.id !== id); renderInvestments(); renderHeaderStats(); setStatus('Synced.');
+    }catch(err){ setStatus('Could not remove: ' + (err.message||''), true); }
+  });
+
+  // ---- Lending ----
+  function loanAmountDue(l){
+    const start = new Date(l.dateGiven);
+    const end = l.dueDate ? new Date(l.dueDate) : new Date();
+    const years = Math.max(0, (end - start) / (1000*60*60*24*365));
+    const interest = l.amount * (l.rate/100) * years;
+    return l.amount + interest;
+  }
+
+  function renderLoans(){
+    const pending = loans.filter(l => l.status === 'pending').reduce((s,l) => s + loanAmountDue(l), 0);
+    const paid = loans.filter(l => l.status === 'paid').reduce((s,l) => s + l.amount, 0);
+    lendPending.textContent = fmt(pending); lendPaid.textContent = fmt(paid);
+    loanList.innerHTML = '';
+    if(loans.length === 0){ loanList.innerHTML = '<div class="empty">No loans logged yet.</div>'; return; }
+    loans.slice().sort((a,b) => (a.status===b.status?0:(a.status==='pending'?-1:1)) || (a.dueDate||'').localeCompare(b.dueDate||'')).forEach(l => {
+      const due = loanAmountDue(l);
+      const overdue = l.status === 'pending' && l.dueDate && l.dueDate < today;
+      const div = document.createElement('div'); div.className = 'item-card lend' + (l.status === 'paid' ? ' paid' : '');
+      div.innerHTML = `<div>
+          <div class="item-name">${escapeHtml(l.borrower)}</div>
+          <div class="item-meta">
+            <span class="badge ${l.status === 'paid' ? 'paid-badge' : 'pending'}">${l.status}</span>
+            <span>${l.rate}%/yr</span>
+            <span>given ${l.dateGiven}</span>
+            ${l.dueDate ? `<span style="${overdue ? 'color:var(--red);font-weight:600;' : ''}">${overdue ? 'overdue since' : 'due'} ${l.dueDate}</span>` : ''}
+          </div>
+        </div>
+        <div class="item-amt">
+          <div class="amt">${fmt(due)}</div>
+          <div class="item-meta" style="justify-content:flex-end;">principal ${fmt(l.amount)}</div>
+          <div class="item-actions">
+            <button class="mini-btn toggle" data-id="${l.id}">${l.status === 'paid' ? 'Mark Pending' : 'Mark Paid'}</button>
+            <button class="mini-btn del" data-id="${l.id}">Remove</button>
+          </div>
+        </div>`;
+      loanList.appendChild(div);
+    });
+  }
+
+  loanForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const borrower = loanBorrowerInput.value.trim(), amount = parseFloat(loanAmtInput.value), rate = parseFloat(loanRateInput.value) || 0;
+    const dateGiven = loanDateInput.value || today, dueDate = loanDueInput.value || null;
+    if(!borrower || isNaN(amount) || amount <= 0) return;
+    setStatus('Saving…');
+    try{
+      const { data, error } = await supabase.from('loans').insert({ user_id: currentUser.id, borrower, amount, interest_rate: rate, date_given: dateGiven, due_date: dueDate, status: 'pending' }).select().single();
+      if(error) throw error;
+      loans.push({ id:data.id, borrower:data.borrower, amount:Number(data.amount), rate:Number(data.interest_rate), dateGiven:data.date_given, dueDate:data.due_date, status:data.status });
+      renderLoans(); renderHeaderStats(); setStatus('Synced.');
+      loanBorrowerInput.value=''; loanAmtInput.value=''; loanRateInput.value='0'; loanDateInput.value = today; loanDueInput.value='';
+    }catch(err){ setStatus('Could not save: ' + (err.message||''), true); }
+  });
+
+  loanList.addEventListener('click', async (e) => {
+    const toggleBtn = e.target.closest('.toggle'); const delBtn = e.target.closest('.del');
+    if(toggleBtn){
+      const id = toggleBtn.dataset.id; const loan = loans.find(l => l.id === id); if(!loan) return;
+      const newStatus = loan.status === 'paid' ? 'pending' : 'paid';
+      setStatus('Updating…');
+      try{
+        const { error } = await supabase.from('loans').update({ status: newStatus }).eq('id', id); if(error) throw error;
+        loan.status = newStatus; renderLoans(); renderHeaderStats(); setStatus('Synced.');
+      }catch(err){ setStatus('Could not update: ' + (err.message||''), true); }
+    } else if(delBtn){
+      const id = delBtn.dataset.id; setStatus('Removing…');
+      try{
+        const { error } = await supabase.from('loans').delete().eq('id', id); if(error) throw error;
+        loans = loans.filter(l => l.id !== id); renderLoans(); renderHeaderStats(); setStatus('Synced.');
+      }catch(err){ setStatus('Could not remove: ' + (err.message||''), true); }
+    }
+  });
+
+  function renderAll(){
+    renderHeaderStats(); renderTransactions();
+    if(currentTab === 'overview') renderCharts();
+    if(currentTab === 'budgets') renderBudgets();
+    if(currentTab === 'investments') renderInvestments();
+    if(currentTab === 'lending') renderLoans();
+  }
+
+  supabase.auth.getSession().then(({ data }) => {
+    if(!data.session){ authScreen.style.display = 'block'; appScreen.style.display = 'none'; }
   });
 })();
 </script>
