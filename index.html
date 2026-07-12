@@ -927,7 +927,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable__xF2JpJRzp-9yvteLDwZJQ_6xa2CzjS';
         <div class="brand"><span class="dot"></span>Ledger<span class="sub" style="margin-left:6px;">wealth tracker</span></div>
         <div class="header-right">
           <div class="balance-label">Cash Balance</div>
-          <div class="balance" id="balanceEl">$0.00</div>
+          <div class="balance" id="balanceEl">₹0.00</div>
           <div class="user-row"><span id="userEmailEl"></span><button class="logout-btn" id="logoutBtn">Sign out</button></div>
         </div>
       </header>
@@ -942,10 +942,10 @@ const SUPABASE_ANON_KEY = 'sb_publishable__xF2JpJRzp-9yvteLDwZJQ_6xa2CzjS';
 
       <div class="tab-panel active" id="panel-overview">
         <div class="stats">
-          <div class="stat cash"><div class="label">Cash Balance</div><div class="val" id="statCash">$0.00</div></div>
-          <div class="stat invest"><div class="label">Total Invested</div><div class="val" id="statInvested">$0.00</div></div>
-          <div class="stat lend"><div class="label">Pending From Others</div><div class="val" id="statLent">$0.00</div></div>
-          <div class="stat worth"><div class="label">Net Worth</div><div class="val" id="statWorth">$0.00</div></div>
+          <div class="stat cash"><div class="label">Cash Balance</div><div class="val" id="statCash">₹0.00</div></div>
+          <div class="stat invest"><div class="label">Total Invested</div><div class="val" id="statInvested">₹0.00</div></div>
+          <div class="stat lend"><div class="label">Pending From Others</div><div class="val" id="statLent">₹0.00</div></div>
+          <div class="stat worth"><div class="label">Net Worth</div><div class="val" id="statWorth">₹0.00</div></div>
         </div>
         <div class="chart-row">
           <div class="chart-box"><h3>Spending by Category</h3><div id="donutWrap"><canvas id="donutChart"></canvas></div></div>
@@ -989,7 +989,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable__xF2JpJRzp-9yvteLDwZJQ_6xa2CzjS';
 
       <div class="tab-panel" id="panel-investments">
         <div class="stats" style="grid-template-columns:1fr 1fr;">
-          <div class="stat invest"><div class="label">Total Invested</div><div class="val" id="investTotal">$0.00</div></div>
+          <div class="stat invest"><div class="label">Total Invested</div><div class="val" id="investTotal">₹0.00</div></div>
           <div class="stat invest"><div class="label">Positions</div><div class="val" id="investCount">0</div></div>
         </div>
         <form class="item-form" id="investForm">
@@ -1012,8 +1012,8 @@ const SUPABASE_ANON_KEY = 'sb_publishable__xF2JpJRzp-9yvteLDwZJQ_6xa2CzjS';
 
       <div class="tab-panel" id="panel-lending">
         <div class="stats" style="grid-template-columns:1fr 1fr;">
-          <div class="stat lend"><div class="label">Pending (incl. interest)</div><div class="val" id="lendPending">$0.00</div></div>
-          <div class="stat lend"><div class="label">Paid Back</div><div class="val" id="lendPaid">$0.00</div></div>
+          <div class="stat lend"><div class="label">Pending (incl. interest)</div><div class="val" id="lendPending">₹0.00</div></div>
+          <div class="stat lend"><div class="label">Paid Back</div><div class="val" id="lendPaid">₹0.00</div></div>
         </div>
         <form class="item-form" id="loanForm">
           <input class="inp" type="text" id="loanBorrowerInput" placeholder="Who did you lend to?" required maxlength="60" />
@@ -1080,7 +1080,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable__xF2JpJRzp-9yvteLDwZJQ_6xa2CzjS';
   const today = new Date().toISOString().slice(0,10);
   dateInput.value = today; investDateInput.value = today; loanDateInput.value = today;
 
-  function fmt(n){ const sign = n < 0 ? '-' : ''; return sign + '$' + Math.abs(n).toFixed(2); }
+  function fmt(n){ const sign = n < 0 ? '-' : ''; return sign + '₹' + Math.abs(n).toFixed(2); }
   function escapeHtml(str){ const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
   function monthKey(dateStr){ return (dateStr || '').slice(0,7); }
   function monthLabel(key){ const [y,m] = key.split('-'); const d = new Date(parseInt(y), parseInt(m)-1, 1); return d.toLocaleDateString('en-US', {month:'short', year:'numeric'}); }
