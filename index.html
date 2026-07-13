@@ -75,10 +75,12 @@
   .stat::before{ content:''; position:absolute; top:0; left:0; width:3px; height:100%; }
   .stat.cash::before{ background:var(--emerald); } .stat.invest::before{ background:var(--violet); }
   .stat.lend::before{ background:var(--sky); } .stat.worth::before{ background:var(--gold); }
+  .stat.income::before{ background:var(--emerald); } .stat.spend::before{ background:var(--red); } .stat.save::before{ background:var(--gold); }
   .stat .label{ font-size:10px; letter-spacing:0.09em; text-transform:uppercase; color:var(--text-dim); margin-bottom:7px; }
   .stat .val{ font-family:'IBM Plex Mono', monospace; font-size:18px; font-weight:600; }
   .stat.cash .val{ color:var(--emerald); } .stat.invest .val{ color:var(--violet); }
   .stat.lend .val{ color:var(--sky); } .stat.worth .val{ color:var(--gold); }
+  .stat.income .val{ color:var(--emerald); } .stat.spend .val{ color:var(--red); } .stat.save .val{ color:var(--gold); }
 
   .chart-row{ display:grid; grid-template-columns: 1.1fr 1fr; gap:16px; margin-bottom:8px; }
   .chart-box{ background:var(--card-hi); border:1px solid var(--border-soft); border-radius:12px; padding:18px; }
@@ -285,6 +287,11 @@
       </div>
 
       <div class="tab-panel active" id="panel-overview">
+        <div class="stats" style="grid-template-columns:repeat(3,1fr); margin-bottom:14px;">
+          <div class="stat income"><div class="label">Total Earned</div><div class="val" id="statIncome">₹0.00</div></div>
+          <div class="stat spend"><div class="label">Total Spent</div><div class="val" id="statExpense">₹0.00</div></div>
+          <div class="stat save"><div class="label">Total Saved</div><div class="val" id="statSaved">₹0.00</div></div>
+        </div>
         <div class="stats">
           <div class="stat cash"><div class="label">Cash Balance</div><div class="val" id="statCash">₹0.00</div></div>
           <div class="stat invest"><div class="label">Total Invested</div><div class="val" id="statInvested">₹0.00</div></div>
@@ -547,8 +554,13 @@ const SUPABASE_ANON_KEY = 'sb_publishable__xF2JpJRzp-9yvteLDwZJQ_6xa2CzjS';
   // A loan's "amount due" is a flat figure: principal + a fixed interest amount you set.
   function loanAmountDue(l){ return l.amount + l.interest; }
 
+  const statIncome = document.getElementById('statIncome'), statExpense = document.getElementById('statExpense'), statSaved = document.getElementById('statSaved');
+
   function renderHeaderStats(){
-    const cashFlow = entries.reduce((sum, e) => sum + (e.type === 'income' ? e.amount : -e.amount), 0);
+    const totalIncome = entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+    const totalExpense = entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+    const cashFlow = totalIncome - totalExpense;
+    statIncome.textContent = fmt(totalIncome); statExpense.textContent = fmt(totalExpense); statSaved.textContent = fmt(cashFlow);
     const investedTotal = investments.reduce((s,i) => s + i.amount, 0);
     const loansPrincipalTotal = loans.reduce((s,l) => s + l.amount, 0);
     const paidDueTotal = loans.filter(l=>l.status==='paid').reduce((s,l) => s + loanAmountDue(l), 0);
